@@ -916,7 +916,7 @@ export class DynamicWorkflowEngine {
       send: async (taskId, content) => {
         const task = this.expectTask(run, taskId)
         if (task.status !== 'running' || task.run?.localAgent === undefined) throw new Error(`task "${taskId}" does not support live messaging on its selected provider`)
-        task.run.localAgent.steer(createUserMessage({ content: [{ type: 'text', text: content }], source: { kind: 'plugin', plugin: '@dsh-external/workflow', form: 'relay' } }))
+        task.run.localAgent.steer(createUserMessage({ content: [{ type: 'text', text: content }], source: { kind: 'plugin:@dsh-external/workflow', form: 'relay' } }))
         this.emit(run, 'agent-message', { taskId, content })
       },
       stop: async (taskId, reason) => {
@@ -1311,7 +1311,7 @@ export class DynamicWorkflowEngine {
           if (attempt === 2 || childRun.localAgent === undefined) throw new Error(`agent verification failed: ${reasons.join('; ')}`)
           childRun.localAgent.followup(createUserMessage({
             content: [{ type: 'text', text: `Verification failed. Repair the same task, then provide a complete final result.\n${reasons.map(reason => `- ${reason}`).join('\n')}` }],
-            source: { kind: 'plugin', plugin: '@dsh-external/workflow', form: 'relay' },
+            source: { kind: 'plugin:@dsh-external/workflow', form: 'relay' },
           }))
           await childRun.localAgent.whenIdle()
           draft = { ...draft, finalText: latestAssistantText(childRun.localAgent, draft.finalText) }

@@ -707,7 +707,7 @@ describe('Cordis plugin entrypoint', () => {
     const requestAgent = { session: { header: { cwd: 'C:\\workspace' }, events: requestEvents }, inject: vi.fn(), steer: requestSteer } as unknown as Agent
     await requestFx.command().handler({ agent: requestAgent, rawInput: 'coordinate inline only', signal: exec.signal })
     requestEvents.push({ type: 'turn/start', data: { turn: 1 } }, { type: 'user/message', data: requestSteer.mock.calls[0]![0] })
-    requestEvents.push({ type: 'user/message', data: { id: 'tool-context', source: { kind: 'plugin', plugin: 'scouting-tool', form: 'notice', summary: 'scouting evidence added' } } })
+    requestEvents.push({ type: 'user/message', data: { id: 'tool-context', source: { kind: 'plugin:scouting-tool', form: 'notice', summary: 'scouting evidence added' } } })
     await expect(requestFx.tools.find(tool => tool.name === 'run_workflow')!.execute({ request: 'start another author pipeline' }, { agent: requestAgent, signal: exec.signal }))
       .rejects.toThrow(/source \+ manifest/u)
     expect(requestFx.service.create).not.toHaveBeenCalled()
@@ -809,7 +809,7 @@ describe('Cordis plugin entrypoint', () => {
     expect(outcome).toMatchObject({ kind: 'success' })
     expect(fx.service.create).not.toHaveBeenCalled()
     expect(inject).toHaveBeenCalledOnce()
-    expect(inject.mock.calls[0]![0]).toMatchObject({ source: { kind: 'plugin', plugin: '@dsh-external/workflow', form: 'relay' } })
+    expect(inject.mock.calls[0]![0]).toMatchObject({ source: { kind: 'plugin:@dsh-external/workflow', form: 'relay' } })
     expect((inject.mock.calls[0]![0] as { content: Array<{ text: string }> }).content[0]!.text).toContain('source + manifest (not request mode)')
     expect(steer).toHaveBeenCalledOnce()
     expect(steer.mock.calls[0]![0]).toMatchObject({ id: expect.any(String), source: { kind: 'user' }, content: [{ type: 'text', text: visibleRequest }] })
@@ -877,8 +877,8 @@ describe('Cordis plugin entrypoint', () => {
       await vi.waitFor(() => { expect(ctx.sessionTitle.get(session)?.title).toBe('inspect and coordinate') })
       const relay = session.events.find(event => event.type === 'agent/inbox/spliced')
       expect(relay?.type === 'agent/inbox/spliced' ? relay.data.inserted[0]?.source : undefined)
-        .toMatchObject({ kind: 'plugin', plugin: '@dsh-external/workflow', form: 'relay' })
-      const context = session.events.find(event => event.type === 'user/message' && event.data.source.kind === 'plugin')
+        .toMatchObject({ kind: 'plugin:@dsh-external/workflow', form: 'relay' })
+      const context = session.events.find(event => event.type === 'user/message' && typeof event.data.source.kind === 'string' && event.data.source.kind.startsWith('plugin:'))
       expect(context?.type === 'user/message' ? context.data.content[0] : undefined)
         .toMatchObject({ type: 'text', text: expect.stringContaining('source + manifest (not request mode)') })
 
